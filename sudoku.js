@@ -30,9 +30,14 @@ function Sudoku(){
 
 
 Sudoku.prototype = {
-    setState: function(vals){
+    /*
+     * An array of 81 values, or string of 81 chars.  values should be from 1-9, or any non-int character to use as a spacer
+     */    
+    setState: function(vals){ 
         for(var i=0, c; c=this.cells[i]; i++){
-            c.setValue(vals[i]);
+            v = parseInt(vals[i]);
+            if(!v){v = null;}
+            c.setValue(v);
         }
     },
     
@@ -42,9 +47,9 @@ Sudoku.prototype = {
             this.rows, this.columns, this.groups
         ];
         for(var g=0, groups; groups=groupTypes[g]; g++){
-            console.log("Each Group Type: "+["row", "col", "block"][g]);
+          //  console.log("Each Group Type: "+["row", "col", "block"][g]);
             for(var h=0, group; group=groups[h]; h++){
-                console.log("Group: "+h);
+          //      console.log("Group: "+h);
                 f.call(this, group);
             }
         }
@@ -70,7 +75,38 @@ Sudoku.prototype = {
     },    
     
     
-    //narrow down hints based on cell values
+    /**
+     * Check for solved cells. Cells with only one hint set.
+     */
+    updateSolvedCells: function(){
+        var numUpdates = 0;
+        
+        for(var i=0,cell; cell=this.cells[i]; i++){
+            if(!cell.value){
+                var numHints = 0;
+                var lastHint=null;
+                for(var h=1; h<=9; h++){
+                    if(cell.flags[h]){
+                        numHints ++;
+                        lastHint = h;
+                    }
+                }
+                if(numHints == 1){
+                    cell.setValue(lastHint, true);
+                    numUpdates++;
+                }
+                
+                
+            }
+        }
+        return numUpdates;
+    },
+    
+    
+    
+    /**
+     * Eliminate all hints that conflict with solved cells.
+     */
     updateHints: function(){
         var numUpdates = 0;
         this.forEachGroup(function(cells){
@@ -97,33 +133,10 @@ Sudoku.prototype = {
         
     },
 
-    //If a cell has only one hint, then set the value 
-    checkLastHint: function(){
-        var numUpdates = 0;
-        
-        for(var i=0,cell; cell=this.cells[i]; i++){
-            if(!cell.value){
-                var numHints = 0;
-                var lastHint=null;
-                for(var h=1; h<=9; h++){
-                    if(cell.flags[h]){
-                        numHints ++;
-                        lastHint = h;
-                    }
-                }
-                if(numHints == 1){
-                    cell.setValue(lastHint, true);
-                    numUpdates++;
-                }
-                
-                
-            }
-        }
-        return numUpdates;
-    },
+  
     
     
-    checkEmptyPairs: function(){
+    checkNakedPairs: function(){
         var numUpdates = 0;        
         this.forEachGroup(function(cells){
             
@@ -159,14 +172,9 @@ Sudoku.prototype = {
     
     
     /**
-     * Look for cases where only one cell contains value v. Eliminate other hints from that cell
-     * 
-     * For each n tuple, 1<= n <8 of possible values
-     *     For each n tuple of cells in the group
-     *         ntuple cells contain all values in vtuple
-     *         other cells do not contain any hint in v
+     * Look for hidden singles. Cases where only one cell in a group has hint h
      */
-    eliminateTakenHintCheck: function(){
+    checkHiddenSingles: function(){
         // going to code this for n=1 for now
         numUpdates = 0;
         this.forEachGroup(function(cells){
@@ -188,7 +196,7 @@ Sudoku.prototype = {
                 }
                 
                 if(numMatched == 1){
-                    console.log("Update Cell: ",c, " to ", v);
+               //     console.log("Update Cell: ",c, " to ", v);
                     valueCell.resetHints([v]);
                     numUpdates++;
                 }
@@ -199,6 +207,21 @@ Sudoku.prototype = {
         
     },
     
+    
+    
+    checkHiddenTuples: function(){
+        /**
+         For each group
+             for each unsolved tuple, c1, to cn | n=[2,3] (quads and up too expensive, not likely to find anything)
+                 for each ntuple of hints in c1
+                     If c2, c3 also contain those hints
+                         If all other cells in group do not contain those hints
+                             c1, to cn have the hidden tuple, eliminate hints not in ntuple hints
+         
+         
+         
+         */
+    }
     
 
 

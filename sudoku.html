@@ -108,30 +108,18 @@ $(function(){
 //     }
     
     sudoku.setState([
-        //'', '', '',   '', '', '',  '', '', '',
-        //'', '', '',   '', '', '',  '', '', '',
-        //'', '', '',   '', '', '',  '', '', '',
-        //
-        //'', '', '',   '', '', '',  '', '', '',
-        //'', '', '',   '', '', '',  '', '', '',
-        //'', '', '',   '', '', '',  '', '', '',
-        //
-        //'', '', '',   '', '', '',  '', '', '',
-        //'', '', '',   '', '', '',  '', '', '', 
-        //'', '', '',   '', '', '',  '', '', '',
+        "4xxx1xxxx",
+        "xxx3x9x4x",
+        "x7xxx5xx9",
         
-        '', 8 , '',   6 , 3 , 2 ,  '', '', '',
-        '', '', '',   '', '', 9 ,  '', '', '',
-        '', '', '',   '', '', 1 ,  5 , 6 , 7 ,
-
-        '', 9 , '',   '', '', '',  4 , 5 , '',
-        '', '', 2 ,   '', '', '',  '', '', '',
-        '', '', 3 ,   '', '', '',  '', 8 , 9 ,
+        "xxxx6xx21",
+        "xx4x7x6xx",
+        "19xx5xxxx",
         
-        '', 1 , '',   '', '', 6 ,  7 , 3 , 8 ,
-        '', 2 , '',   '', '', '',  '', 9 , 6 , 
-        '', '', '',   '', '', '',  '', '', '',
-    ]);
+        "9xx4xxx7x",
+        "x3x6x8xxx",
+        "xxxx3xxx6",
+    ].join(''));
     
     
     window.refreshGrid = function(sudoku){
@@ -173,15 +161,20 @@ $(function(){
     
     refreshGrid(sudoku);
     while(true){    	
-    	var i = sudoku.updateHints();
+    	var i = sudoku.updateSolvedCells();
+   	    i += sudoku.updateHints();
     	refreshGrid(sudoku);
-    	i += sudoku.checkLastHint();
+    	if(i>0) continue;
+    	
+    	i += sudoku.checkNakedPairs();
     	refreshGrid(sudoku);
-    	i += sudoku.checkEmptyPairs();
+    	if(i>0) continue;
+    	
+    	i += sudoku.checkHiddenSingles();
     	refreshGrid(sudoku);
-    	i += sudoku.eliminateTakenHintCheck();
-    	refreshGrid(sudoku);
-    	console.log("#solved: "+i);
+    	if(i>0) continue;
+    	
+    	
     	if(i== 0){
     		break;
     	}
