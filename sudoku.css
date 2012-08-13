@@ -1,0 +1,78 @@
+table {
+	border-collapse: collapse;
+	border: 2px solid black;
+}
+
+td {
+	padding: 0;
+	border: 1px solid black;
+}
+textarea{
+	height: 200px; width: 400px;
+}
+
+
+.cell {
+	text-align: center;
+	font-size: 30px;
+	height: 40px;
+	width: 40px;
+}
+
+td.col2,td.col5 {
+	border-right: 3px solid black;
+}
+
+td.row2,td.row5 {
+	border-bottom: 3px solid black;
+}
+
+
+
+table.hints {
+    font-size: 8px;
+    color: #fff;
+    border-width: 0;
+}
+table.hints td {
+    border-width: 0;
+    text-align: center;
+    height: 13px;
+    width: 13px;
+    cursor: pointer;
+    
+    -webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+    
+}
+
+table.hints td.active-true {
+    color: #888888;
+    font-weight: bold;
+}
+.cell.solved-true .hints{
+	display: none;
+}
+
+
+
+.cell.value-false span {
+    display: none;
+}
+.cell.value-true span {
+    display: block;
+}
+
+
+.cell.puzzleValue-false {
+	color: brown;
+}
+
+
+
+
+

@@ -1,202 +1,41 @@
 <!DOCTYPE html>
-<html>
+<html ng-app>
 <head>
 
-<style type="text/css">
-   table{ border-collapse: collapse;}
-   td{  padding:0;}
-   
-   table.mainTable{
-    border: 2px solid black;
-   }
-   table.mainTable td{
-        border: 1px solid black;
-        height: 124px;
-        width: 124px;
-    
-   }
-   
-   table.cellGroup td{    
-        height: 40px;
-        width: 40px;
-   }
-   
-   table.cellHints{
-    font-size: 8px;
-    color: #D66F58;   
-   }
-   
-   table.cellHints .active{
-    color: #888888;
-    font-weight: bold;
-   }
-   
-   
-   table.cellHints span {
-    display: none;   
-   } 
-   table.cellHints .active span {
-    display: block;
-   } 
-   table.cellHints td {
-        border-width:0;
-        text-align:center;
-        height: 13px;
-        width: 13px
-     
-   }
-   
-   .cell {
-    text-align: center;
-    font-size: 30px;
-   }
-   .cell.solved {
-     color: brown;
-   }
-   
-   .cell.value .cellHints{ display: none;}
-   
-   .cell .cellValue{ display: none; }
-   .cell.value .cellValue{ display: block;}
 
+<link rel="stylesheet" href="sudoku.css">
 
-</style>
-<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+<script src="http://code.angularjs.org/angular-1.0.1.js"></script>
+<script type="text/javascript" src="underscore.js"></script>
 <script type="text/javascript" src="sudoku.js"></script>
-<script type="text/javascript">
 
-$(function(){
-    
-    
-    var table = ["<table class='mainTable'>"]; 
-    
-    for(var r1=0; r1<3; r1++){
-        table.push("<tr>");
-        for(var c1=0; c1<3; c1++){
-            table.push("<td><table class='cellGroup'>");
-            for(var r2=0; r2<3; r2++){
-                table.push("<tr>");
-                for(var c2=0; c2<3; c2++){
-                    table.push("<td class='cell hint'><span class='cellValue'></span><table class='cellHints'>");
-                    var hint = 0;
-                    for(var r3=0; r3<3; r3++){
-                        table.push("<tr>");
-                        for(var c3=0; c3<3; c3++){
-                            hint++;
-                            table.push("<td><span>", hint, "</span></td>");
-                        }  
-                        table.push("</tr>");
-                    }
-                    table.push("</table></td>");
-                }  
-                table.push("</tr>");
-            }
-            table.push("</table></td>");
-        }  
-        table.push("</tr>");
-    }
-    table.push("</table>")    
-        
-    
-    $(".sudokuGrid").append(table.join(''));
-    
-    var sudoku = new Sudoku();
-//     for(var c=0; c< 9; c++){
-//         for(var r=0; r< 9; r++){
-//               sudoku.rows[r][c].setValue(r+"-"+c);
-//         }
-//     }
-    
-    sudoku.setState([
-        "4xxx1xxxx",
-        "xxx3x9x4x",
-        "x7xxx5xx9",
-        
-        "xxxx6xx21",
-        "xx4x7x6xx",
-        "19xx5xxxx",
-        
-        "9xx4xxx7x",
-        "x3x6x8xxx",
-        "xxxx3xxx6",
-    ].join(''));
-    
-    
-    window.refreshGrid = function(sudoku){
-        var cellEls = $(".mainTable .cell"); //cells will come out in group order
-        var i=0;
-        for(var g=0; g<9; g++){
-            for(var c=0; c<9; c++){
-                var el = $(cellEls[i++]);
-                var cell = sudoku.groups[g][c];
-                
-                if(cell.value){
-                    el.addClass("value");
-                    $(".cellValue", el).html(cell.value);
-                    if(cell.isSolvedValue){
-                    	el.addClass("solved");
-                    }
-                }
-                else{
-                    el.removeClass("value");
-                    $(".cellHints td", el).each(function(h, hint){
-                        hint = $(hint);
-                        if(cell.flags[h+1]){
-                            hint.addClass("active");                    
-                        }
-                        else{
-                            hint.removeClass("active");
-                        }
-                    });
-                  
-                }
-            }
-        }
-        
-        
-        
-        
-        
-    };
-    
-    refreshGrid(sudoku);
-    while(true){    	
-    	var i = sudoku.updateSolvedCells();
-   	    i += sudoku.updateHints();
-    	refreshGrid(sudoku);
-    	if(i>0) continue;
-    	
-    	i += sudoku.checkNakedPairs();
-    	refreshGrid(sudoku);
-    	if(i>0) continue;
-    	
-    	i += sudoku.checkHiddenSingles();
-    	refreshGrid(sudoku);
-    	if(i>0) continue;
-    	
-    	
-    	if(i== 0){
-    		break;
-    	}
-    }
-    
-    
-    refreshGrid(sudoku);
-    
-    
-    
-})
-
-
-
-</script>
 </head>
 <body>
-<div id="container">
-
-<div class="sudokuGrid"></div>
-
-
+<div ng-controller="Sudoku">
+   <table class='mainTable'>
+        <tr ng-repeat="row in rows">        
+            <td class="cell row{{$parent.$index}} col{{$index}} solved-{{ cell.value>0 }} puzzleValue-{{ !cell.isSolvedValue }} "  ng-repeat="cell in row">
+                <span  ng-click="handleCellClick($event, cell)" >{{cell.value}}</span>
+                <table class="hints">
+                    <tr ng-repeat="i in [0,1,2]">
+                        <td class="active-{{ (cell.hints[3*i+j]) }}"  ng-repeat="j in [1,2,3]"  ng-click="handleHintClick($event, cell, 3*i+j)">{{3*i+j}}</td>
+                    </tr>
+                </table>
+            </td>
+        </tr> 
+    </table>
+    <h2>Enter puzzle to solve.</h2>
+    <textarea ng-model="inputPuzzleStr"></textarea>
+    <button ng-click="loadPuzzle()">Load</button>
+    <button ng-click="iterateSolver()">iterate</button>
+    <div><h2>Iteration Log</h2>
+        <ul><li ng-repeat="action in log">
+            {{action.iteration}}: {{action.desc}} ({{action.count}})
+        </li></ul>
+    </div>
+    
+    
 </div>
 
 </body>
