@@ -66,8 +66,8 @@ function Sudoku($scope){
         benchmark: function () {
             for (var i = 0, l = benchmarks.length; i < l; i++) {
                 this.inputPuzzleStr = benchmarks[i];
-                loadPuzzle();
-                while (!iterateSolver(true));
+                this.loadPuzzle();
+                while (!this.iterateSolver(true));
             }
         },
         
