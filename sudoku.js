@@ -62,6 +62,14 @@ function Sudoku($scope){
                 cell.toggleHint(h);
             }
         },
+
+        benchmark: function () {
+            for (var i = 0, l = benchmarks.length; i < l; i++) {
+                this.inputPuzzleStr = benchmarks[i];
+                loadPuzzle();
+                while (!iterateSolver());
+            }
+        },
         
         loadPuzzle: function(){
             this.init();
@@ -73,17 +81,19 @@ function Sudoku($scope){
                 if(!v){v = null;}
                 c.setValue(v);
             }
+
+            this.log.push({desc: "Loaded puzzle: " this.inputPuzzleStr, count: 0, iteration: 0});
             
         },
         
-        iterateSolver: function(){
+        iterateSolver: function(noLogging){
             var done = this.updateHints();
             this.numUpdates = 0;
             this.iteration++;
             
             if(done){
                 this.log.push({desc: "Finished", count: 0, iteration:this.iteration});
-                return;
+                return true;
             }
             
             var algorithms = [                              
@@ -95,7 +105,7 @@ function Sudoku($scope){
             _.every(algorithms, function(algo){
                 algo.f.call(this);
                 if(this.numUpdates > 0){
-                    this.log.push({desc: algo.desc, count: this.numUpdates, iteration:this.iteration});
+                    if (!noLogging) this.log.push({desc: algo.desc, count: this.numUpdates, iteration:this.iteration});
                     return false;
                 }
                 return true;
@@ -103,8 +113,10 @@ function Sudoku($scope){
             
             if(this.numUpdates == 0 ){
                 this.log.push({desc: "No progress made", count: 0, iteration:this.iteration});
+                return true;
             }
             this.updateHints();
+            return false;
         },
         
         

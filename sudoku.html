@@ -5,11 +5,6 @@
 
 <link rel="stylesheet" href="sudoku.css">
 
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
-<script src="http://code.angularjs.org/angular-1.0.1.js"></script>
-<script type="text/javascript" src="underscore.js"></script>
-<script type="text/javascript" src="sudoku.js"></script>
-
 </head>
 <body>
 <div ng-controller="Sudoku">
@@ -29,6 +24,7 @@
     <textarea ng-model="inputPuzzleStr"></textarea>
     <button ng-click="loadPuzzle()">Load</button>
     <button ng-click="iterateSolver()">iterate</button>
+    <button ng-click="benchmark()">Benchmark</button>
     <div><h2>Iteration Log</h2>
         <ul><li ng-repeat="action in log">
             {{action.iteration}}: {{action.desc}} ({{action.count}})
@@ -37,6 +33,12 @@
     
     
 </div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+<script src="http://code.angularjs.org/angular-1.0.1.js"></script>
+<script type="text/javascript" src="underscore.js"></script>
+<script type="text/javascript" src="sudoku.js"></script>
+<script type="text/javascript" src="benchmarks.js"></script>
 
 </body>
 </html>
