@@ -18,7 +18,7 @@ function Sudoku($scope){
             this.columns = []; 
             this.groups = [];
             this.iteration=0; 
-            this.log = [];
+            // this.log = [];
             for(var n=0; n<9; n++){
                 this.rows.push([]);
                 this.columns.push([]);
