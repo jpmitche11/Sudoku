@@ -67,7 +67,7 @@ function Sudoku($scope){
             for (var i = 0, l = benchmarks.length; i < l; i++) {
                 this.inputPuzzleStr = benchmarks[i];
                 loadPuzzle();
-                while (!iterateSolver());
+                while (!iterateSolver(true));
             }
         },
         
@@ -82,8 +82,7 @@ function Sudoku($scope){
                 c.setValue(v);
             }
 
-            this.log.push({desc: "Loaded puzzle: " this.inputPuzzleStr, count: 0, iteration: 0});
-            
+            this.log.push({desc: "Loaded puzzle: " + this.inputPuzzleStr, count: 0, iteration: 0});
         },
         
         iterateSolver: function(noLogging){
