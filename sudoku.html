@@ -5,11 +5,6 @@
 
 <link rel="stylesheet" href="sudoku.css">
 
-<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
-<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.0.4/angular.min.js"></script>
-<script type="text/javascript" src="underscore.js"></script>
-<script type="text/javascript" src="sudoku.js"></script>
-
 </head>
 <body>
 <div ng-controller="Sudoku">
@@ -32,10 +27,17 @@
     <button ng-click="loadPuzzle()">Load</button>
     <button ng-click="solvePuzzle()">Solve</button>
     <button ng-click="iterateSolver()">Iterate</button>
+    <button ng-click="benchmark()">Benchmark</button>
     
     
     
 </div>
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.0.4/angular.min.js"></script>
+<script type="text/javascript" src="underscore.js"></script>
+<script type="text/javascript" src="sudoku.js"></script>
+<script type="text/javascript" src="benchmarks.js"></script>
 
 </body>
 </html>

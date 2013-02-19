@@ -19,7 +19,6 @@ function Sudoku($scope, $log){
             this.groups = [];                        
             this.cells = [];
             this.iteration =0;
-            this.solved=false;
 
             for(var n=0; n<9; n++){
                 //create arrays that will hold groups of cells
@@ -67,6 +66,14 @@ function Sudoku($scope, $log){
                 cell.toggleHint(h);
             }
         },
+
+        benchmark: function () {
+            for (var i = 0, l = benchmarks.length; i < l; i++) {
+                this.inputPuzzleStr = benchmarks[i];
+                this.loadPuzzle();
+                while (!this.iterateSolver(true));
+            }
+        },
         
         loadPuzzle: function(){
             this.init();
@@ -79,14 +86,14 @@ function Sudoku($scope, $log){
                 c.setValue(v);
             }
 
-            
+            $log.info("Loaded puzzle: " + this.inputPuzzleStr);
         },
         
         solvePuzzle: function(){         
             //TODO: Prevent long running loop   
             while(this.iterateSolver()){}
         },
-        iterateSolver: function(){
+        iterateSolver: function(noLogging){
             var done = this.updateHints();
             this.numUpdates = 0;
             this.iteration++;
@@ -114,6 +121,7 @@ function Sudoku($scope, $log){
             
             if(this.numUpdates == 0 ){
                 this.logIteration({desc: "No progress made", count: 0, iteration:this.iteration});
+                return true;
             }
             this.updateHints();
             return this.numUpdates;
