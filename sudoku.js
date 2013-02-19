@@ -1,32 +1,35 @@
-
-
-
-
-function Sudoku($scope){
+/**
+Sudoku controller class
+**/
+function Sudoku($scope, $log){
     
     _.extend($scope, {
-        cells: [],
-        rows: [],
+        //Arrays used to organize the sudoku board
+        cells: [], //contains all 81 cells ordered from left to right, top to bottom
+        rows: [], 
         columns: [], 
-        groups: [],
-        log:[],//debug logging
+        groups: [], //contains the 3x3 squares of cells        
+        inputPuzzleStr:"",
         iteration:0,
         test: "testProp",
         init: function(){
-            this.cells = []; //array of all cells on the board
-            this.rows = []; 
-            this.columns = []; 
-            this.groups = [];
-            this.iteration=0; 
-            this.log = [];
+            //delete old puzzle data if any
+            this.rows = [];
+            this.columns = [];
+            this.groups = [];                        
+            this.cells = [];
+            this.iteration =0;
+            this.solved=false;
+
             for(var n=0; n<9; n++){
+                //create arrays that will hold groups of cells
                 this.rows.push([]);
                 this.columns.push([]);
                 this.groups.push([]);
             }
             
-            for(var i=0; i<81; i++){
-                
+            //create all 81 cells(9x9) and put each cell into the correct row, column, and group
+            for(var i=0; i<81; i++){                
                 var c = i%9;
                 var r = Math.floor(i/9);        
                 var g = Math.floor(r/3)*3 + Math.floor(c/3);
@@ -39,7 +42,9 @@ function Sudoku($scope){
                 
             }
         },
-        
+        logIteration: function(action){
+            $log.info( "Iteration "+action.iteration+": "+action.desc+"("+action.count+")");
+        },
         handleCellClick: function($event, cell){
             if($event.ctrlKey){
                 var v = cell.value;
@@ -73,16 +78,22 @@ function Sudoku($scope){
                 if(!v){v = null;}
                 c.setValue(v);
             }
+
             
         },
         
+        solvePuzzle: function(){         
+            //TODO: Prevent long running loop   
+            while(this.iterateSolver()){}
+        },
         iterateSolver: function(){
             var done = this.updateHints();
             this.numUpdates = 0;
             this.iteration++;
             
             if(done){
-                this.log.push({desc: "Finished", count: 0, iteration:this.iteration});
+                this.solved = true;
+                this.logIteration({desc: "Finished", count: 0, iteration:this.iteration});
                 return;
             }
             
@@ -95,16 +106,17 @@ function Sudoku($scope){
             _.every(algorithms, function(algo){
                 algo.f.call(this);
                 if(this.numUpdates > 0){
-                    this.log.push({desc: algo.desc, count: this.numUpdates, iteration:this.iteration});
+                    this.logIteration({desc: algo.desc, count: this.numUpdates, iteration:this.iteration});
                     return false;
                 }
                 return true;
             }, this);
             
             if(this.numUpdates == 0 ){
-                this.log.push({desc: "No progress made", count: 0, iteration:this.iteration});
+                this.logIteration({desc: "No progress made", count: 0, iteration:this.iteration});
             }
             this.updateHints();
+            return this.numUpdates;
         },
         
         
