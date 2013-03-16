@@ -1,3 +1,4 @@
+'use strict';
 /**
 Sudoku controller class
 **/
@@ -6,90 +7,99 @@ function Sudoku($scope, $log){
     _.extend($scope, {
         //Arrays used to organize the sudoku board
         cells: [], //contains all 81 cells ordered from left to right, top to bottom
-        rows: [], 
+        //the cells organized into 9 rows, 9 columns, and 9 blocks
+        rows: [],
         columns: [], 
-        groups: [], //contains the 3x3 squares of cells                
+        blocks: [], //contains the 3x3 squares of cells
+
+        blockIntersections: [], //Info about places where a block intersects with a row or column
         iteration:0,
         benchmarks: Sudoku.benchmarks,
         init: function(){
             //delete old puzzle data if any
             this.rows = [];
             this.columns = [];
-            this.groups = [];                        
+            this.blocks = [];
             this.subGroups = [];
             this.cells = [];
             this.iteration = 0;
             this.solved = false;
+            var n;
 
 
-             //create all subgroups - 3 cells in a row or column that belong to a group            
-            //54 sub groups - 3 for each of the 9 rows and 9 columns
-            /*for(var n=0; n<54; n++){
-                var rowCol = Math.floor(n/3);                
-                this.subGroups[rowCol] = {
-                    cells:[],
-                    rowCol: this.rows[rowCol],
-                    group: this.groups[i%3+3*Math.floor(i/9)]
-                };
-                this.subGroups[27+rowCol] = {
-                    cells:[],
-                    rowCol: this.columns[rowCol],
-                    group: null
-                };
-            }*/
-            //create all subgroups - 3 cells in a row or column that belong to a group            
-            //54 sub groups - 3 for each of the 9 rows and 9 columns
-            for(var n=0; n<54; n++){               
-                this.subGroups[n] = {
+            var rowIntersections = [];
+            var columnIntersections = [];
+            for(n=0; n<27; n++){
+                rowIntersections.push({
                     cells:[],
                     rowCol: null,
                     block: null
-                };
+                });
+                columnIntersections.push({
+                    cells:[],
+                    rowCol: null,
+                    block: null
+                });
             }
             
-            for(var n=0; n<9; n++){
-                //create arrays that will hold groups of cells
+            for(n=0; n<9; n++){
+                //create arrays that will hold blocks of cells
                 this.rows.push([]);
                 this.columns.push([]);
-                this.groups.push([]);
+                this.blocks.push([]);
             }
            
            
-            
+
             //create all 81 cells(9x9) and put each cell into the correct row, column, and group
             for(var i=0; i<81; i++){                
                 var c = i%9;
                 var r = Math.floor(i/9);        
                 var g = Math.floor(r/3)*3 + Math.floor(c/3);
                 
-                var cell = new Cell({
-                    row:r,
-                    group:g,
-                    column:c
-                });
+                var cell = new Cell();
                 this.cells.push(cell);
                 this.rows[r].push(cell);
                 this.columns[c].push(cell);
-                this.groups[g].push(cell);
+                this.blocks[g].push(cell);
 
-                
+                //find where this cell's row intersects with a block
+                var rowIntersection = rowIntersections[Math.floor(i/3)];
+                rowIntersection.cells.push(cell);
+                if(!rowIntersection.rowCol && !rowIntersection.block){
+                    rowIntersection.rowCol = this.rows[r];
+                    rowIntersection.block = this.blocks[g];
+                }
+                else{
+                    if(rowIntersection.rowCol !== this.rows[r]){
+                        throw "Row not matched"
+                    }
+                    if(rowIntersection.block !== this.blocks[g]){
+                        throw "Block not matched"
+                    }
+                }
 
-                var sgRow = Math.floor(i/3)    
-                var sgCol = 27+Math.floor(i/27) + 3*i%9;
-
-                this.subGroups[sgRow].cells.push(cell);
-                this.subGroups[sgRow].rowCol = this.rows[r];
-                this.subGroups[sgRow].block = this.groups[g];
-
-                this.subGroups[sgCol].cells.push(cell);
-                this.subGroups[sgCol].rowCol = this.columns[c];
-                this.subGroups[sgCol].block = this.groups[g];
-                
+                //find where this cell's column intersects with a block
+                var iCol = i/9;
+                var columnIntersection = columnIntersections[ c*3 + Math.floor(iCol/3)];
+                columnIntersection.cells.push(cell);
+                if(!columnIntersection.rowCol && !columnIntersection.block){
+                    columnIntersection.rowCol = this.columns[c];
+                    columnIntersection.block = this.blocks[g];
+                }
+                else{
+                    if(columnIntersection.rowCol !== this.columns[c]){
+                        throw "Col not matched"
+                    }
+                    if(columnIntersection.block !== this.blocks[g]){
+                        throw "Block not matched"
+                    }
+                }
             }
-
+            this.blockIntersections = _.flatten([rowIntersections, columnIntersections]);
         },
         logIteration: function(action){            
-            //$log.info( "Iteration "+action.iteration+": "+action.desc+"("+action.count+")");
+            $log.info( "Iteration "+action.iteration+": "+action.desc+"("+action.count+")");
         },
         handleCellClick: function($event, cell){
             if($event.ctrlKey){
@@ -117,7 +127,7 @@ function Sudoku($scope, $log){
         benchmark: function () {
             for (var i = 0, l = this.benchmarks.length; i < l; i++) {                
                 this.loadPuzzle(this.benchmarks[i]);
-                this.solvePuzzle();
+                this.solvePuzzle(true);
             }
         },
         loadPresetPuzzle: function(p){
@@ -130,7 +140,7 @@ function Sudoku($scope, $log){
             var vals = puzzleStr.replace(/\n/g, "");
             
             for(var i=0, c; c=this.cells[i]; i++){
-                v = parseInt(vals[i]); 
+                var v = parseInt(vals[i]);
                 if(!v){v = null;}
                 c.setValue(v);
             }
@@ -138,9 +148,9 @@ function Sudoku($scope, $log){
             $log.info("Loaded puzzle: " + puzzleStr);
         },
         
-        solvePuzzle: function(){         
+        solvePuzzle: function(noLogging){
             //TODO: Prevent long running loop   
-            while(this.iterateSolver()){}
+            while(this.iterateSolver(noLogging)){}
             if(this.solved){
                 $log.info("Solved in "+this.iteration+" iterations");
             }
@@ -169,7 +179,7 @@ function Sudoku($scope, $log){
             _.every(algorithms, function(algo){
                 algo.f.call(this);
                 if(this.numUpdates > 0){
-                    this.logIteration({desc: algo.desc, count: this.numUpdates, iteration:this.iteration});
+                    noLogging || this.logIteration({desc: algo.desc, count: this.numUpdates, iteration:this.iteration});
                     return false;
                 }
                 return true;
@@ -225,7 +235,7 @@ function Sudoku($scope, $log){
         //For each row/column/block, call f(group)
         forEachGroup: function(f){
             var groupTypes = [
-                this.rows, this.columns, this.groups
+                this.rows, this.columns, this.blocks
             ];
             for(var g=0, groups; groups=groupTypes[g]; g++){
               //  console.log("Each Group Type: "+["row", "col", "block"][g]);
@@ -318,7 +328,7 @@ function Sudoku($scope, $log){
          */
         checkHiddenSingles: function(){            
             this.forEachGroup(function(cells){
-                t=0;
+                var t=0;
                 for(var v=1; v<=9; v++){
                     var valueCell=null, numMatched=0; var c=0;
                     for(var i=0, cell; cell = cells[i]; i++){
@@ -399,17 +409,18 @@ function Sudoku($scope, $log){
             check for pointing pairs/triples, and box line reduction.
         */
         checkIntersections: function(){
-            //divide each group into subgroups of 3 cells that intersect with another group
-            //eg, a rows subgroups are [0,1,2], [3,4,5], and [6,7,8]
-            //each subgroup belongs to a block and either a row or column
+            //divide each row or column into a sections that intersect with a block
+            //for each intersection
 
-            for(var i=0; this.subGroups[i]; i++){
-                var sg = this.subGroups[i];
-                var sgHints = this.getHints(sg.cells);   
-                var gA = _.difference(sg.block, sg.cells);
-                var gB = _.difference(sg.rowCol, sg.cells);
+
+            for(var i=0; this.blockIntersections[i]; i++){
+                var intersection = this.blockIntersections[i];
+                var intersectionHints = this.getHints(intersection.cells);
+
+                var gA = _.difference(intersection.block, intersection.cells);
+                var gB = _.difference(intersection.rowCol, intersection.cells);
                 _.each([ [gA,gB], [gB,gA] ], function(g){
-                    var uniqueHints = _.difference(sgHints, this.getHints(g[0]));                    
+                    var uniqueHints = _.difference(intersectionHints, this.getHints(g[0]));
                     _.each(g[1], function(cell){
                         cell.setHints(uniqueHints, false);
                     },this); 
@@ -489,28 +500,9 @@ function Sudoku($scope, $log){
                     return true;
                 }
             }
-        },
+        }
 
     };
-    
-    
-    
-    arrayEquals = function(a, b){
-        if(a === b){
-            return true;        
-        }
-        if(a.length != b.length){
-            return false;
-        }
-        for(var i=0, len=a.length; i<len; i++){
-            if(a[i] !== b[i]){
-                return false;
-            }
-        }
-        return true;
-    };
-    
-    
     
     
     $scope.init();
