@@ -169,7 +169,10 @@ StaticServlet.prototype.sendFile_ = function(req, res, path) {
   var file = fs.createReadStream(path);
   res.writeHead(200, {
     'Content-Type': StaticServlet.
-      MimeMap[path.split('.').pop()] || 'text/plain'
+      MimeMap[path.split('.').pop()] || 'text/plain',
+
+      'Cache-Control': 'no-cache, private, no-store, must-revalidate, max-stale=0, post-check=0, pre-check=0'
+      
   });
   if (req.method === 'HEAD') {
     res.end();

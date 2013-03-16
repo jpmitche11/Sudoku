@@ -23,8 +23,11 @@
     <div ng-hide="!solved" class="puzzle-solved">Puzzle solved</div>
     <div ng-hide="solved || iteration==0" class="puzzle-not-solved">Puzzle not solved</div>
     <h2>Enter puzzle to solve.</h2>
+    <select ng-model="selectPuzzleStr" ng-options="p for p in benchmarks" ng-change="loadPresetPuzzle(selectPuzzleStr)">
+            <option value="">Select a puzzle</option>
+    </select><br>
     <textarea ng-model="inputPuzzleStr"></textarea>
-    <button ng-click="loadPuzzle()">Load</button>
+    <button ng-click="loadPuzzle(inputPuzzleStr)">Load</button>
     <button ng-click="solvePuzzle()">Solve</button>
     <button ng-click="iterateSolver()">Iterate</button>
     <button ng-click="benchmark()">Benchmark</button>
@@ -33,8 +36,8 @@
     
 </div>
 
-<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
-<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.0.4/angular.min.js"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.js"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.0.4/angular.js"></script>
 <script type="text/javascript" src="underscore.js"></script>
 <script type="text/javascript" src="sudoku.js"></script>
 <script type="text/javascript" src="benchmarks.js"></script>
