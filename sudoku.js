@@ -1,20 +1,23 @@
-'use strict';
+import 'angular';
+import _ from 'underscore';
+import { benchmarks } from './benchmarks';
+
 /**
 Sudoku controller class
 **/
 function Sudoku($scope, $log){
-    
+
     _.extend($scope, {
         //Arrays used to organize the sudoku board
         cells: [], //contains all 81 cells ordered from left to right, top to bottom
         //the cells organized into 9 rows, 9 columns, and 9 blocks
         rows: [],
-        columns: [], 
+        columns: [],
         blocks: [], //contains the 3x3 squares of cells
 
         blockIntersections: [], //Info about places where a block intersects with a row or column
         iteration:0,
-        benchmarks: Sudoku.benchmarks,
+        benchmarks: benchmarks,
         init: function(){
             //delete old puzzle data if any
             this.rows = [];
@@ -41,22 +44,22 @@ function Sudoku($scope, $log){
                     block: null
                 });
             }
-            
+
             for(n=0; n<9; n++){
                 //create arrays that will hold blocks of cells
                 this.rows.push([]);
                 this.columns.push([]);
                 this.blocks.push([]);
             }
-           
-           
+
+
 
             //create all 81 cells(9x9) and put each cell into the correct row, column, and group
-            for(var i=0; i<81; i++){                
+            for(var i=0; i<81; i++){
                 var c = i%9;
-                var r = Math.floor(i/9);        
+                var r = Math.floor(i/9);
                 var g = Math.floor(r/3)*3 + Math.floor(c/3);
-                
+
                 var cell = new Cell();
                 this.cells.push(cell);
                 this.rows[r].push(cell);
@@ -98,7 +101,7 @@ function Sudoku($scope, $log){
             }
             this.blockIntersections = _.flatten([rowIntersections, columnIntersections]);
         },
-        logIteration: function(action){            
+        logIteration: function(action){
             $log.info( "Iteration "+action.iteration+": "+action.desc+"("+action.count+")");
         },
         handleCellClick: function($event, cell){
@@ -125,7 +128,7 @@ function Sudoku($scope, $log){
         },
 
         benchmark: function () {
-            for (var i = 0, l = this.benchmarks.length; i < l; i++) {                
+            for (var i = 0, l = this.benchmarks.length; i < l; i++) {
                 this.loadPuzzle(this.benchmarks[i]);
                 this.solvePuzzle(true);
             }
@@ -136,9 +139,9 @@ function Sudoku($scope, $log){
         },
         loadPuzzle: function(puzzleStr){
             this.init();
-            
+
             var vals = puzzleStr.replace(/\n/g, "");
-            
+
             for(var i=0, c; c=this.cells[i]; i++){
                 var v = parseInt(vals[i]);
                 if(!v){v = null;}
@@ -147,29 +150,29 @@ function Sudoku($scope, $log){
 
             $log.info("Loaded puzzle: " + puzzleStr);
         },
-        
+
         solvePuzzle: function(noLogging){
-            //TODO: Prevent long running loop   
+            //TODO: Prevent long running loop
             while(this.iterateSolver(noLogging)){}
             if(this.solved){
                 $log.info("Solved in "+this.iteration+" iterations");
             }
             else{
-                $log.info("Could not solve");   
+                $log.info("Could not solve");
             }
         },
         iterateSolver: function(noLogging){
             var done = this.updateHints();
             this.numUpdates = 0;
             this.iteration++;
-            
+
             if(done){
                 this.solved = true;
                 this.logIteration({desc: "Finished", count: 0, iteration:this.iteration});
                 return;
             }
-            
-            var algorithms = [                              
+
+            var algorithms = [
                   {f: this.updateCellValues, desc: "Find Naked Singles"},
                   {f: this.checkNakedTuples, desc: "Find Naked Doubles/Triples"},
                   {f: this.checkHiddenSingles, desc: "Find Hidden Singles"},
@@ -184,24 +187,24 @@ function Sudoku($scope, $log){
                 }
                 return true;
             }, this);
-            
+
             if(this.numUpdates == 0 ){
-                this.logIteration({desc: "No progress made", count: 0, iteration:this.iteration});               
+                this.logIteration({desc: "No progress made", count: 0, iteration:this.iteration});
             }
             this.updateHints();
             return this.numUpdates;
         },
-        
-        
+
+
         /**
-         * Eliminate all hints that conflict with solved cells. 
+         * Eliminate all hints that conflict with solved cells.
          */
         updateHints: function(){
             var numUnsolvedCells=0;
             this.forEachGroup(function(cells){  //For each row, column, block
                 for(var i=0,c1; c1=cells[i]; i++){
                     var value = c1.value;
-                    if(value){                        
+                    if(value){
                         for(var j=0, c2; c2=cells[j]; j++){ //For each solved/unsolved pair i/j
                             if(i !== j && !c2.value){
                                 c2.setHint(value, false);  //j.hint for i.value = false
@@ -209,14 +212,14 @@ function Sudoku($scope, $log){
                         }
                     }
                     else{
-                        numUnsolvedCells++;    
+                        numUnsolvedCells++;
                     }
-                }    
-                
+                }
+
             });
-            return numUnsolvedCells == 0; 
+            return numUnsolvedCells == 0;
         },
-        
+
         /**
          * Check for solved cells. Cells with only one hint set (Naked Singles).
          * This is the only place where a cell can have the value set in the solver. All other places only update hints
@@ -245,8 +248,8 @@ function Sudoku($scope, $log){
                 }
             }
         },
-        
-        
+
+
         /**
          * Gets an array of all hints set in cells array
          */
@@ -256,23 +259,23 @@ function Sudoku($scope, $log){
                 hints.push(cell.getHints());
             });
             //flatten all hints into one array, remove duplicates
-            return _.union.apply(_, hints);   
+            return _.union.apply(_, hints);
         },
 
-        
-        
+
+
         /**
-         * For each n-tuple in the list of items 
+         * For each n-tuple in the list of items
          * @param n - size of tuple
          * @param list - array of items.
          * @param f - callback function. Called with tuple - n length array
          * @param includeAll - true to any element, otherwise only include solved cell items.
          */
-        forEachNTuple: function(n, list, f, includeAll){            
+        forEachNTuple: function(n, list, f, includeAll){
             var that=this;
-            
+
             //recursively build tuple
-            var impl = function(i, n, inTuple){ 
+            var impl = function(i, n, inTuple){
                 var limit = list.length - (n-1);
                 for(; i<limit ; i++){
                     if(includeAll || !list[i].value){
@@ -283,34 +286,34 @@ function Sudoku($scope, $log){
                         }
                     }
                 }
-                
-            };
-            
-            
-            impl(0, n, []);
-        }, 
-        
-        
-        
 
-      
-        
-        
+            };
+
+
+            impl(0, n, []);
+        },
+
+
+
+
+
+
+
         /**
          * Checks for naked pairs/triples. 4-tuples and above are too expensive and not likely to benifit, so leaving those out
          */
         checkNakedTuples: function(){
-            
+
             this.forEachGroup(function(cells){
                 for(var tupleSize=2; tupleSize <=3; tupleSize++){
                     this.forEachNTuple(tupleSize, cells, function(tuple){
-                        
-                        var hints = this.getHints(tuple);                        
+
+                        var hints = this.getHints(tuple);
                         if(hints.length == tupleSize){
                             var otherCells = _.difference(cells, tuple);
-                            
+
                             for(var k=0, cell; cell = otherCells[k]; k++){
-                                if(!cell.value){ 
+                                if(!cell.value){
                                     cell.setHints(hints, false);
                                 }
                             }
@@ -319,68 +322,68 @@ function Sudoku($scope, $log){
                     });
                 }
             });
-            
+
         },
-        
-        
+
+
         /**
          * Look for hidden singles. Cases where only one cell in a group has hint h
          */
-        checkHiddenSingles: function(){            
+        checkHiddenSingles: function(){
             this.forEachGroup(function(cells){
                 var t=0;
                 for(var v=1; v<=9; v++){
                     var valueCell=null, numMatched=0; var c=0;
                     for(var i=0, cell; cell = cells[i]; i++){
-                        if(!cell.value && cell.hints[v]){                        
+                        if(!cell.value && cell.hints[v]){
                             valueCell = cell;
                             c=i;
                             numMatched++;
                             if(numMatched>1){
                                 break;
                             }
-                            
-                        }                    
+
+                        }
                     }
-                    
+
                     if(numMatched == 1){
                         valueCell.resetHints([v]);
                     }
                 }
-                    
+
             });
         },
-        
-        
-        
+
+
+
         checkHiddenTuples: function(){
             /**
              For each group
                  for each pair/triple of cells ( the n-tuple)
                      hints = hints(tuple)
                      otherHints = hints(non-tuple cells)
-                     hiddenTupleHints = difference between hints and otherHints                     
-                     if hints.length >= n, and hiddenTupleHints.lenght is exactly n, then hidden tuple is found                     
-                         eliminate hints not in hiddenTupleHints             
+                     hiddenTupleHints = difference between hints and otherHints
+                     if hints.length >= n, and hiddenTupleHints.lenght is exactly n, then hidden tuple is found
+                         eliminate hints not in hiddenTupleHints
              */
-            
+
             this.forEachGroup(function(cells){
                 for(var tupleSize=2; tupleSize <=3; tupleSize++){
-                    this.forEachNTuple(tupleSize, cells, function(tuple){ 
-                         
-                        var tupleHints = this.getHints(tuple);                         
+                    this.forEachNTuple(tupleSize, cells, function(tuple){
+
+                        var tupleHints = this.getHints(tuple);
                          if(tupleHints.length >= tupleSize){
                              var otherCells = _.difference(cells, tuple);
-                             var otherHints = this.getHints(otherCells); 
-                             
+                             var otherHints = this.getHints(otherCells);
+
                              //get hints that exist in the tuple, but not in other cells
                              var hiddenHints = _.difference(tupleHints, otherHints);
-                             
+
 
                              //if none found, then this is a hidden tuple. Remove all other hints in the tuple
                              if(hiddenHints.length === tupleSize){
                                  _.each(tuple, function(cell){
-                                     
+
                                      //for each hint h in cell
                                          //h = false if ! in hiddenHints
                                      for(var h=1; h<=9; h++){
@@ -388,20 +391,20 @@ function Sudoku($scope, $log){
                                              cell.setHint(h, false);
                                          }
                                      }
-                                     
-                                    
+
+
                                  });
                              }
-                                 
-                             
+
+
                          }
                     });
                 }
             });
-            
-            
-            
-            
+
+
+
+
         },
 
 
@@ -423,24 +426,24 @@ function Sudoku($scope, $log){
                     var uniqueHints = _.difference(intersectionHints, this.getHints(g[0]));
                     _.each(g[1], function(cell){
                         cell.setHints(uniqueHints, false);
-                    },this); 
-                }, this);                
+                    },this);
+                }, this);
             }
         }
-        
 
 
 
 
-        
+
+
     });
-  
-    
-    
+
+
+
     var Cell = function(){
         this.hints = []; // 1-9, true/false. True if that number is possible
-        this.setValue(null);   
-    };  
+        this.setValue(null);
+    };
     Cell.prototype = {
         setValue: function(val, isSolvedValue){
             if(val != this.value){
@@ -452,7 +455,7 @@ function Sudoku($scope, $log){
             this.value = val;
             this.isSolvedValue = isSolvedValue;
         },
-        
+
         setHints: function(hints, value){
             for(var i=0, len=hints.length; i<len; i++){
                 if(this.hints[hints[i]] != value){
@@ -461,7 +464,7 @@ function Sudoku($scope, $log){
                 this.hints[hints[i]] = value;
             }
         },
-        
+
         toggleHint: function(hint, i, j){
             this.setHint(hint, !this.hints[hint]);
         },
@@ -471,18 +474,18 @@ function Sudoku($scope, $log){
             }
             this.hints[hint] = value;
         },
-        
+
         resetHints: function(hints){
             var h = this.getHints();
             $scope.numUpdates += h.length + hints.length - _.intersection(h, hints).length;
-            
-            
+
+
             this.hints = [];
-            for(var i=0, len=hints.length; i<len; i++){              
+            for(var i=0, len=hints.length; i<len; i++){
                 this.hints[hints[i]] = true;
-            }  
-            
-            
+            }
+
+
         },
         getHints: function(){
             var hints = [];
@@ -503,18 +506,10 @@ function Sudoku($scope, $log){
         }
 
     };
-    
-    
+
+
     $scope.init();
 }
 
-
-
-
-
-
-
-
-
-
-
+angular.module('sudoku', [])
+    .controller('Sudoku', Sudoku);

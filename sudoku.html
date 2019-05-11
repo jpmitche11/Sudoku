@@ -1,15 +1,13 @@
 <!DOCTYPE html>
-<html ng-app>
+<html ng-app="sudoku">
 <head>
-
-
 <link rel="stylesheet" href="sudoku.css">
-
 </head>
 <body>
+
 <div ng-controller="Sudoku">
    <table class='mainTable'>
-        <tr ng-repeat="row in rows">        
+        <tr ng-repeat="row in rows">
             <td class="cell row{{$parent.$index}} col{{$index}} solved-{{ cell.value>0 }} puzzleValue-{{ !cell.isSolvedValue }} "  ng-repeat="cell in row">
                 <span  ng-click="handleCellClick($event, cell)" >{{cell.value}}</span>
                 <table class="hints">
@@ -18,7 +16,7 @@
                     </tr>
                 </table>
             </td>
-        </tr> 
+        </tr>
     </table>
     <div ng-hide="!solved" class="puzzle-solved">Puzzle solved</div>
     <div ng-hide="solved || iteration==0" class="puzzle-not-solved">Puzzle not solved</div>
@@ -31,16 +29,12 @@
     <button ng-click="solvePuzzle()">Solve</button>
     <button ng-click="iterateSolver()">Iterate</button>
     <button ng-click="benchmark()">Benchmark</button>
-    
-    
-    
+
+
+
 </div>
 
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.js"></script>
-<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.0.4/angular.js"></script>
-<script type="text/javascript" src="underscore.js"></script>
-<script type="text/javascript" src="sudoku.js"></script>
-<script type="text/javascript" src="benchmarks.js"></script>
+<script type="text/javascript" src="/dist/app.js"></script>
 
 </body>
 </html>

@@ -1,0 +1,31 @@
+{
+  "name": "sudoku",
+  "version": "1.0.0",
+  "description": "Sudoku ======",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "npx webpack-dev-server --config ./webpack.config.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jpmitche11/Sudoku.git"
+  },
+  "author": "Patrick Mitchell",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jpmitche11/Sudoku/issues"
+  },
+  "homepage": "https://github.com/jpmitche11/Sudoku#readme",
+  "dependencies": {
+    "angular": "^1.7.8",
+    "underscore": "^1.9.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.4.4",
+    "@babel/preset-env": "^7.4.4",
+    "babel-loader": "^8.0.5",
+    "webpack": "^4.31.0",
+    "webpack-cli": "^3.3.2",
+    "webpack-dev-server": "^3.3.1"
+  }
+}
